@@ -73,7 +73,6 @@ class FileObject:
     def extension(self):
         return str(os.path.splitext(self.path)[-1])
     def __eq__(self, other):
-        print(self.content, other.content)
         return self.content == other.content
 
 
@@ -118,6 +117,14 @@ class ImageObject(FileObject):
             if str(tag).startswith('DateTime'):
                 return data
         return None
+    
+    def __str__(self):
+        return f"""Image: {self.path}
+            Dimensions: {self.dimensions}
+            Hash: {self.hash}
+            EXIF: {self.exif}
+            Capture Date: {self.capture_date}"""
+
 
 class VideoObject(FileObject):
     def __init__(self, path):
@@ -149,8 +156,14 @@ class VideoObject(FileObject):
         bit_rate = metadata['format']['bit_rate']
         return bit_rate
 
+    def __str__(self):
+        return f"VideoObject(path={self.path}, metadata={self.metadata}, bitrate={self.bitrate})"
+
+
+
 def main():
     with ExecutionTimer():
+
         """         
         for root, _ , files in os.walk(TARGET_DIR):
             folder = root.split(os.sep)[-1]
@@ -180,8 +193,8 @@ def main():
  
         path = TARGET_DIR #"/mnt/hdd/IMPORTANT_MEDIA/from_4tb_hdd/from_windows/Videos/OBS/CSGO/dm_scoutx20.mp4"
         clip = VideoObject(path)
-        print(clip.metadata)
-        print(clip.bitrate)
-
+        print(clip)
+        img = ImageObject("/home/joona/Pictures/PEGBOARD.jpg")
+        print(img)
 if __name__ == '__main__': 
     main()
