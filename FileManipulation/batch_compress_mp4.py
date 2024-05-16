@@ -9,6 +9,9 @@ import sys
 import cv2
 
 from MetaData import *
+from Color import *
+from ExecutionTimer import ExecutionTimer
+from ProgressBar import ProgressBar
 
 # TODO
 # - Check for corrupt files
@@ -62,13 +65,13 @@ def compress(input_directory, output_directory):
         return
 
     # Get total files
-    number_of_files = len(input_directory)
+    number_of_files = len(input_directory) + 1
 
-    print(f"\033[34mTotal number of .mp4 files to process:\033[0m \033[2;36m{number_of_files}\033[m") # DEBUGGING
-    
+    progress = ProgressBar(number_of_files)
+
     # Iterate over all .mp4 files in the input directory
     for i, input_file in enumerate(input_directory):
-        print(f"[\033[33m Processing {input_file} ({i + 1}/{number_of_files}) \033[0m]")
+        progress.increment()
         if input_file.basename.endswith(".mp4"):
             #video = VideoObject(os.path.join(input_directory, input_file))
             
@@ -80,7 +83,7 @@ def compress(input_directory, output_directory):
                 # Define the output file path
                 output_file_path = os.path.join(output_directory.path,input_file.basename)
             except Exception as e:
-                print(f"[\033[31m {e} \033[0m")
+                cprint(f'\n{e}', fg.red, style.underline)
                 continue
             # Check if the output file already exists
             if os.path.exists(output_file_path):
@@ -92,9 +95,20 @@ def compress(input_directory, output_directory):
                 # and flag for removal of old file
                 elif output_file_object.metadata == input_file.metadata and output_file_object.size != input_file.size:
                     compressed_files.append(input_file)
+                    cprint(f"\n{input_file.basename} is already compressed", fg.red, style.underline)
                     continue
+                elif output_file_object.basename == input_file.basename and not output_file_object.is_corrupt and input_file.size != output_file_object.size:
+                    count = 0
+                    while True:
+                        try:
+                            shutil.move(input_file.path, input_file.path[:-4] + '_' + str(count) + '.mp4')
+                        except FileExistsError:
+                            count += 1
+                            continue
+                        else:
+                            break
                 else:
-                    print(f"[\033[31m {output_file_path} already exists. Skipping. \033[0m]")
+                    os.remove(input_file.path) if not input_file.is_corrupt else cprint('FATAL ERROR: Manual intervention required', fg.red, style.underline)
                     continue
             # Run ffmpeg command for each file
             result = subprocess.run(
@@ -106,23 +120,25 @@ def compress(input_directory, output_directory):
             result = result.returncode
             # Check if conversion was successful
             if result == 0:
-                print(f"[\033[32m Successfully converted {input_file.basename} \033[0m]")
                 compressed_files.append(input_file)
             else:
-                print(f"[\033[31m {input_file.basename} could not be converted. Error code: {result}\033[0m]")
-    print("[\033[1;32m Batch conversion completed. \033[0m]")
+                cprint(f"\n{input_file.basename} could not be converted. Error code: {result}", fg.red, style.bold)
+    cprint("\nBatch conversion completed.", fg.green)
     return compressed_files
 
 if __name__ == "__main__":
-    args = parse_arguments()
-    sucessfully_compressed_files = compress(args.input_directory, args.output_directory)
+    with ExecutionTimer():
+        args = parse_arguments()
+        sucessfully_compressed_files = compress(args.input_directory, args.output_directory)
 
-    for vid in sucessfully_compressed_files:
-        if vid.is_corrupt:
-            print(f"\033[31m{vid.path} is corrupt\033[0m")
-        else:
-            print(f"\033[32m{vid.path} is not corrupt. Removing old file...\033[0m")
-            os.remove(os.path.join(args.input_directory, vid.basename))
+        for vid in sucessfully_compressed_files:
+            if vid.is_corrupt:
+                cprint(f"\n{vid.path} is corrupt", fg.red, style.underline)
+                continue
+            else:               
+                os.remove(os.path.join(args.input_directory, vid.basename))
+
+        print('')
 
     
 
