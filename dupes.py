@@ -62,11 +62,21 @@ def main(dir1, dir2):
                     except Exception as e:
                         print(e)
                         pass
-        cprint(f'\n"\n".join(corrupt_files)', style.bold)
+        cprint(f'\n{"\n".join(corrupt_files)}', style.bold)
 
         if input('Are you sure you want to remove these files? [y/N]: ') in ['y', 'Y']:
-            
-        print(f'\n\n{'\n'.join(errors)}')
+            remove_progress = ProgressBar(len(corrupt_files))
+            for f in corrupt_files:
+                remove_progress.increment()
+                try:
+                    os.remove(f)
+                except KeyboardInterrupt:
+                    break
+                except Exception as e:
+                    cprint(f'\n{e}', fg.red, style.bold)
+                    errors.append(f'Error removing {f}')
+                    continue
+        cprint(f'\n\n{'\n'.join(errors)}', bg.red, style.bold)
 
 
 if __name__ == '__main__':
