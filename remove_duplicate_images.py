@@ -70,9 +70,23 @@ def main(args):
         for k, v in hashes.items():
             if len(v) > 1:
                 for img in v:
-                    subprocess.run(f'kitten icat "{img}"', shell=True)
+                    subprocess.run(
+                        f'kitten icat --use-window-size 500,100,500,100 "{img}"',
+                        shell=True,
+                    )
                     duplicate_files.append(img)
-                input("Press Enter to continue...")
+
+                reply = input(f"\033[33mRemove these files? [Y/n]: \033[0m")
+                if reply.lower() == "y" or reply == "":
+                    try:
+                        for i, img in enumerate(v):
+                            while i < len(v) - 1:
+                                os.remove(img)
+                    except FileNotFoundError:
+                        pass
+                else:
+                    os.system("clear")
+                    continue
         print("")
 
 
