@@ -44,7 +44,7 @@ def main(args):
             for item in directory:
                 if (
                     "Trash-1000" in item.path
-                    or "Screenshots" in item.path
+                    or "RuneLite" in item.path
                     or "Wallpaper" in item.path
                 ):
                     continue
@@ -52,7 +52,7 @@ def main(args):
                 if item.is_file:
                     progress.increment()
                 if item.is_file and item.is_image:
-                    hash = item.calculate_hash()
+                    hash = item.calculate_hash('dhash')
                     if hash in hashes.keys():
                         hashes[hash].append(item.path)
                         cprint(
@@ -77,12 +77,16 @@ def main(args):
 
                 reply = input(f"\033[33mRemove these files? [Y/n]: \033[0m")
                 if reply.lower() == "y" or reply == "":
-                    try:
-                        for i, img in enumerate(v):
-                            while i < len(v) - 1:
-                                os.remove(img)
-                    except FileNotFoundError:
-                        pass
+                    for i, img in enumerate(v):
+                        # Skip the first image
+                        if i == 0:
+                            continue
+                        try:
+                            os.remove(img)
+                            cprint(f"{img} removed", fg.green, style.bold)
+                        except FileNotFoundError:
+                            cprint(f"{img} not found", fg.red, style.bold)
+                            next
                 else:
                     os.system("clear")
                     continue
