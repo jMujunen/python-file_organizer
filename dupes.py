@@ -17,10 +17,15 @@ from ProgressBar import ProgressBar
 from MetaData import *
 from Color import *
 
+# TODO
+# - [ ] Add verbose mode
+# - [ ] Implement dry-run mode
+# - [ ] Implement the feature which allowes inputting a single directory or serveral
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="Find and remove duplicate files from two directories")
+        description="Find and remove duplicate files from 1 or more directories",
+        )
     parser.add_argument(
         "dir1", help="Path to the first directory where the duplicate files will be removed")
     parser.add_argument(

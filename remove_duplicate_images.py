@@ -43,8 +43,7 @@ def main(args):
         try:
             for item in directory:
                 if (
-                    "RuneLite" in item.path
-                    or "Trash-1000" in item.path
+                    "Trash-1000" in item.path
                     or "Screenshots" in item.path
                     or "Wallpaper" in item.path
                 ):

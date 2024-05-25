@@ -32,12 +32,12 @@ def main(input_directory, output_directory):
     # List of file objects
     old_files = []
     new_files = []
-
     input_directory = DirectoryObject(input_directory)
     output_directory = DirectoryObject(output_directory)
 
     try:
-        # Create the output directory if it doesn't exist
+        # for folder_path in input_directory.rel_directories:
+            # Create the output directorys if they don't exist
         os.makedirs(output_directory.path, exist_ok=True)
     except OSError as e:
         print(
@@ -45,11 +45,11 @@ def main(input_directory, output_directory):
         )
         return
 
-    # Get total files
+    # Initialize progress bar
     number_of_files = len(input_directory) + 1
-
     progress = ProgressBar(number_of_files)
 
+    # Loop through all files in input directory
     for item in input_directory:
         progress.increment()
         if item.extension == ".mp4":
@@ -63,19 +63,21 @@ def main(input_directory, output_directory):
             # Check if the output file already exists
             if os.path.exists(output_file_path):
                 output_file_object = VideoObject(output_file_path)
-                # Remove file if it is corrupt
-                if output_file_object.is_corrupt:
-                    os.path.remove(output_file_object.path)
                 # If metadata is the same but size if different, its already compressed so skip
                 # and flag for removal of old file
-                elif (
+                duration_diff = output_file_object.metadata['duration'] - item.metadata['duration']
+                if (
                     output_file_object.metadata == item.metadata
                     and output_file_object.size != item.size
+                    or output_file_object.size != item.size
+                    and output_file_object.metadata['aspect_ratio'] == item.metadata['aspect_ratio']
+                    and abs(duration_diff) < 0.1
                 ):
                     old_files.append(item)
                     new_files.append(output_file_object)
                     continue
-                # Otherwise rename the file by appending _1, _2, etc.
+                elif output_file_object.is_corrupt:
+                    os.remove(output_file_object.path)
                 elif (
                     output_file_object.basename == item.basename
                     and not output_file_object.is_corrupt
@@ -85,10 +87,20 @@ def main(input_directory, output_directory):
                     # Loop until a unique name is found
                     while True:
                         try:
+                            print(output_file_object.metadata)
+                            print(output_file_object.bitrate)
+                            print(output_file_object.size)
+                            print(output_file_object.basename)
+                            print('-------------')
+                            print(item.metadata)
+                            print(item.bitrate)
+                            print(item.size)
+                            print(item.basename)
                             # Rename the file: "input_file.mp4" -> "input_file_1.mp4"
                             new_path = f"{output_file_path[:-4]}_{str(count)}.mp4"
-                            shutil.move(new_path)
+                            shutil.move(item.path, new_path)
                             item = VideoObject(new_path)
+                            break
                         except FileExistsError:
                             count += 1
                             continue
@@ -142,6 +154,18 @@ if __name__ == "__main__":
         args = parse_arguments()
         # Run the main function
         old_files, new_files = main(args.input_directory, args.output_directory)
+
+        # Output how much data was saved in the conversion
+        total_preproccessed_size = 0
+        total_processed_size = 0
+        for vid in old_files:
+            total_preproccessed_size += vid.size
+        for vid in new_files:
+            total_processed_size += vid.size
+
+        space_saved = BytesConverter(total_preproccessed_size - total_processed_size)
+
+        cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
         # Triple check validity of conversion and finally, remove old files
         for vid in new_files:
             if vid.is_corrupt:
