@@ -13,6 +13,7 @@ from MetaData import *
 from Color import *
 from ExecutionTimer import ExecutionTimer
 from ProgressBar import ProgressBar
+from ByteConverter import ByteConverter
 
 # TODO
 # - Check for corrupt files
@@ -120,7 +121,7 @@ def main(input_directory, output_directory):
                     continue
             # Run ffmpeg command for each file
             result = subprocess.run(
-                f'ffmpeg -i "{item.path}" -c:v h264_nvenc -crf 18 -qp 18 "{output_file_path}"',
+                f'ffmpeg -i "{item.path}" -c:v hevc_nvenc -crf 20 -qp 20 "{output_file_path}"',
                 shell=True,
                 capture_output=True,
                 text=True,
@@ -163,7 +164,7 @@ if __name__ == "__main__":
         for vid in new_files:
             total_processed_size += vid.size
 
-        space_saved = BytesConverter(total_preproccessed_size - total_processed_size)
+        space_saved = ByteConverter(total_preproccessed_size - total_processed_size)
 
         cprint(f"\nSpace saved: {space_saved}", fg.green, style.bold)
         # Triple check validity of conversion and finally, remove old files

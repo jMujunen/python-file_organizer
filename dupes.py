@@ -64,6 +64,7 @@ def main(dir1, dir2):
                                 cprint(f"Removing {larger_file.path}", fg.red, style.bold)
                                 files_to_remove.append(larger_file.path)
                                 # os.remove(larger_file.path)
+                            continue
                         except AttributeError:
                             errors.append(f'Nonetype: {item.path}, and {dir2_obj.path}')
                         except Exception as e:
