@@ -66,7 +66,7 @@ def main(input_dir, output_dir):
                                     count += 1
                         # If the file does not exist in 'NoMetaData' directory yet, move it there
                         else:
-                            shutil.move(pic.path, os.path.join(input_dir, 'NoMetaData', ''))
+                            shutil.move(pic.path, os.path.join(output_dir, 'NoMetaData', ''))
                     # Meta data found, move it to appropriate year subdirectory based 
                     # on metadata date
                     else:
