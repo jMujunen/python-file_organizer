@@ -18,9 +18,9 @@ from MetaData import *
 from Color import *
 
 SPECIAL_FILES = {
-    re.compile("^(DSC|P_\d+|IMG-\d+)"): lambda x: rename_file(output_dir, x),
-    re.compile("^Screenshot"): lambda x: screenshots(output_dir, x),
-    re.compile("joona.and.ella"): lambda x: wedding_photos(output_dir, x)
+    re.compile(r"^(DSC|P_\d+|IMG-\d+)"): lambda output_dir, x: rename_file(output_dir, x),
+    re.compile(r"^Screenshot"): lambda output_dir, x: screenshots(output_dir, x),
+    re.compile(r"joona.and.ella"): lambda  output_dir, x: wedding_photos(output_dir, x)
 }
 
 JUNK_FILE_REGEX = re.compile("Abakus")
@@ -32,7 +32,8 @@ def rename_file(output_dir, image_object):
     capture_date = str(image_object.capture_date).replace(' ','_')
     if capture_date:
         new_name = f"{capture_date}{image_object.extension}"
-        return new_name
+        new_path = os.path.join(output_dir, new_name)
+        return new_path
         #shutil.move(image_object.path, os.path.join(image_object.dir_name, new_name))
 def wedding_photos(output_dir, image_object):
     wedding_photo_dir = os.path.join(output_dir, 'Wedding')
@@ -133,7 +134,7 @@ def main(input_dir, output_dir):
                     # Meta data found, move it to appropriate year subdirectory based 
                     # on metadata date
                     else:
-                        capture_year = pic.capture_date.year
+                        capture_year = str(pic.capture_date.year)
                         output_file_path = os.path.join(output_dir, capture_year, pic.basename)
                         for regex, func in SPECIAL_FILES.items():
                             if regex.match(pic.basename):
