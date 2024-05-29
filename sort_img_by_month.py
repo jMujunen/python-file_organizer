@@ -30,9 +30,10 @@ def rename_file(output_dir, image_object):
     if not image_object.capture_date:
         return
     capture_date = str(image_object.capture_date).replace(' ','_')
+    capture_year = capture_date[:4]
     if capture_date:
         new_name = f"{capture_date}{image_object.extension}"
-        new_path = os.path.join(output_dir, new_name)
+        new_path = os.path.join(output_dir, capture_year, new_name)
         return new_path
         #shutil.move(image_object.path, os.path.join(image_object.dir_name, new_name))
 def wedding_photos(output_dir, image_object):
