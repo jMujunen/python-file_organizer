@@ -4,10 +4,12 @@
 
 import os
 import subprocess
-import argparse
 import sys
-import cv2
 import shutil
+
+import cv2
+import argcomplete
+import argparse
 
 from MetaData import *
 from Color import *
@@ -33,8 +35,8 @@ def main(input_directory, output_directory):
     # List of file objects
     old_files = []
     new_files = []
-    input_directory = DirectoryObject(input_directory)
-    output_directory = DirectoryObject(output_directory)
+    input_directory = Dir(input_directory)
+    output_directory = Dir(output_directory)
 
     try:
         # for folder_path in input_directory.rel_directories:
@@ -63,7 +65,7 @@ def main(input_directory, output_directory):
 
             # Check if the output file already exists
             if os.path.exists(output_file_path):
-                output_file_object = VideoObject(output_file_path)
+                output_file_object = Video(output_file_path)
                 # If metadata is the same but size if different, its already compressed so skip
                 # and flag for removal of old file
                 duration_diff = output_file_object.metadata['duration'] - item.metadata['duration']
@@ -100,7 +102,7 @@ def main(input_directory, output_directory):
                             # Rename the file: "input_file.mp4" -> "input_file_1.mp4"
                             new_path = f"{output_file_path[:-4]}_{str(count)}.mp4"
                             shutil.move(item.path, new_path)
-                            item = VideoObject(new_path)
+                            item = Video(new_path)
                             break
                         except FileExistsError:
                             count += 1
@@ -127,7 +129,7 @@ def main(input_directory, output_directory):
                 text=True,
             )
             result = result.returncode
-            output_file_object = VideoObject(output_file_path)
+            output_file_object = Video(output_file_path)
 
             # Check if conversion was successful and do a few more checks for redundancy
             if (
@@ -149,8 +151,8 @@ def main(input_directory, output_directory):
     cprint("\nBatch conversion completed.", fg.green)
     return old_files, new_files
 
-
 if __name__ == "__main__":
+    # Context manager is perfect for an Execution timer
     with ExecutionTimer():
         args = parse_arguments()
         # Run the main function

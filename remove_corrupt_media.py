@@ -26,7 +26,7 @@ def main(path):
     with ExecutionTimer():
         corrupted_files = []
 
-        directory = DirectoryObject(path)
+        directory = Dir(path)
         jobs = len(directory) + 1
 
         cprint(f"Found {jobs - 1} files", fg.green, style.bold)

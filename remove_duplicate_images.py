@@ -35,7 +35,7 @@ def main(args):
     with ExecutionTimer():
         hashes = {}
         duplicate_files = []
-        directory = DirectoryObject(args.path)
+        directory = Dir(args.path)
         files = len(directory.files) + 1
 
         cprint(f"Found {files - 1} files", fg.green, style.bold)
