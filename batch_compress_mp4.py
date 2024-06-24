@@ -4,15 +4,14 @@
 
 import os
 import subprocess
-import sys
 import shutil
 
-import cv2
-import argcomplete
 import argparse
 
-from MetaData import *
-from Color import *
+from fsutils.DirNode import Dir
+from fsutils.VideoFile import Video
+
+from Color import fg, style, cprint
 from ExecutionTimer import ExecutionTimer
 from ProgressBar import ProgressBar
 from ByteConverter import ByteConverter
@@ -23,9 +22,7 @@ from ByteConverter import ByteConverter
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Batch process all .mp4 files in a directory"
-    )
+    parser = argparse.ArgumentParser(description="Batch process all .mp4 files in a directory")
     parser.add_argument("input_directory", help="Input directory")
     parser.add_argument("output_directory", help="Output directory")
     return parser.parse_args()
@@ -40,12 +37,10 @@ def main(input_directory, output_directory):
 
     try:
         # for folder_path in input_directory.rel_directories:
-            # Create the output directorys if they don't exist
+        # Create the output directorys if they don't exist
         os.makedirs(output_directory.path, exist_ok=True)
     except OSError as e:
-        print(
-            f"[\033[31m Error creating output directory '{output_directory}': {e} \033[0m]"
-        )
+        print(f"[\033[31m Error creating output directory '{output_directory}': {e} \033[0m]")
         return
 
     # Initialize progress bar
@@ -68,12 +63,12 @@ def main(input_directory, output_directory):
                 output_file_object = Video(output_file_path)
                 # If metadata is the same but size if different, its already compressed so skip
                 # and flag for removal of old file
-                duration_diff = output_file_object.metadata['duration'] - item.metadata['duration']
+                duration_diff = output_file_object.metadata["duration"] - item.metadata["duration"]
                 if (
                     output_file_object.metadata == item.metadata
                     and output_file_object.size != item.size
                     or output_file_object.size != item.size
-                    and output_file_object.metadata['aspect_ratio'] == item.metadata['aspect_ratio']
+                    and output_file_object.metadata["aspect_ratio"] == item.metadata["aspect_ratio"]
                     and abs(duration_diff) < 0.1
                 ):
                     old_files.append(item)
@@ -94,7 +89,7 @@ def main(input_directory, output_directory):
                             print(output_file_object.bitrate)
                             print(output_file_object.size)
                             print(output_file_object.basename)
-                            print('-------------')
+                            print("-------------")
                             print(item.metadata)
                             print(item.bitrate)
                             print(item.size)
@@ -132,11 +127,7 @@ def main(input_directory, output_directory):
             output_file_object = Video(output_file_path)
 
             # Check if conversion was successful and do a few more checks for redundancy
-            if (
-                result == 0
-                and not item.is_corrupt
-                and not output_file_object.is_corrupt
-            ):
+            if result == 0 and not item.is_corrupt and not output_file_object.is_corrupt:
                 old_files.append(item)
                 new_files.append(output_file_object)
 
@@ -150,6 +141,20 @@ def main(input_directory, output_directory):
     # Notify user of completion
     cprint("\nBatch conversion completed.", fg.green)
     return old_files, new_files
+
+
+def mount_windows_ssd(device: str = "/dev/sdb1", mount_point: str = "/mnt/removable") -> str:
+    """Mounts a Windows SSD to a specified mount point."""
+    result = subprocess.run(
+        f"sudo mount {device} {mount_point} ", shell=True, capture_output=True, text=True
+    )
+
+    if result.returncode == 0:
+        return f"{device}: successfully mounted at {mount_point}"
+
+    else:
+        raise RuntimeError(f"Failed to mount {device}. Error code: {result.returncode}")
+
 
 if __name__ == "__main__":
     # Context manager is perfect for an Execution timer

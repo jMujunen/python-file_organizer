@@ -3,21 +3,16 @@
 # remove_corrupt_media.py - Finds and removes corrupt images and videos.
 
 import os
-import sys
-import re
-import shutil
 import argparse
 
 from ExecutionTimer import ExecutionTimer
 from ProgressBar import ProgressBar
-from MetaData import *
-from Color import *
+import fsutils
+from Color import cprint, style, fg
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Finds and removes corrupt images and videos"
-    )
+    parser = argparse.ArgumentParser(description="Finds and removes corrupt images and videos")
     parser.add_argument("path", help="Path to the directory")
     return parser.parse_args()
 
